@@ -1,0 +1,764 @@
+! Список команд построения конечно-элементной модели внутреннего объема отвода
+/FILNAME, BranchPipe, 0
+D = 0.3
+R = 0.2
+T = 0.004
+THETA = 180
+V = 1
+P = 3*(1E+5)
+/PREP7
+TORUS, R, , D/2-T, 0, THETA
+VOFFST, 4, 2*D
+VOFFST, 3, 2*D
+ESIZE, D/10
+ET, 1, FLUID142
+VSWEEP, 1, 3, 4
+VSWEEP, 2, 4, 5
+VSWEEP, 3, 3, 10
+ASEL, S, AREA, , 1, 2,
+ASEL, A, AREA, , 6, 9, 1
+ASEL, A, AREA, , 11, 14, 1
+DA, ALL, VX, 0, 1
+DA, ALL, VY, 0, 1
+DA, ALL, VZ, 0, 1
+ASEL, ALL
+DA, 10, VY, V, 1
+DA, 5, PRESS, 0
+
+
+! Список команд построения конечно-элементной модели тройника
+/FILNAME, PipeTee, 0
+/PREP7
+D = 0.5
+D1 = 0.3
+r = 0.05
+H = 0.5
+F = 0.3
+T = 0.04
+T1 = 0.03
+TB = (T+T1)/2
+L = 2*D
+V = 0.12
+P = 3*(1E+5)
+K, 1, 0, 0, 0
+K, 2, D1/2-T1, 0, 0
+K, 3, D1/2-T1, 0, -(H-D/2+T)
+K, 4, F, 0, -(H-D/2+T)
+K, 5, F, 0, -H
+K, 6, 0, 0, -H
+*DO, i, 1, 5
+ LSTR, i, i+1
+*ENDDO 
+LSTR, 6, 1
+LFILLT, 2, 3, r+TB
+AROTAT, 1, , , , , , 6, 1, 90, 1
+AROTAT, 4, , , , , , 5, 6, 180, 1
+VDRAG, 1, , , , , , 6
+VDRAG, 2, , , , , , 5
+VDRAG, 1, , , , , , 2, 7
+VADD, ALL
+LSTR, 27, 29
+ASBL, 34, 13, --, DELETE
+AL, 13, 44, 54, 52
+VA, 3, 22, 29, 5
+VADD, ALL
+AADD, 13, 27, 19, 21, 28, 31, 33, 30, 20
+AADD, 11, 26, 24, 25
+VSYMM, X, 2, , , , , 0
+VADD, 1, 2
+AADD, 12, 16
+NUMCMP, ALL
+VOFFST, 5, L
+VOFFST, 1, -L
+VOFFST, 2, L
+VADD, ALL
+AADD, 17, 16, 8, 13, 24, 25, 21,22
+NUMCMP, ALL
+ESIZE, D/5
+ET, 1, FLUID142
+MSHAPE, 1, 3D
+VMESH, 1
+ASEL, S, AREA, , 2, 16
+ASEL, U, AREA, , 10
+ASEL, U, AREA, , 12
+ASEL, U, AREA, , 15
+DA, ALL, VX, 0, 1
+DA, ALL, VY, 0, 1
+DA, ALL, VZ, 0, 1
+ASEL, ALL
+DA, 1, VY, 0, 1
+DA, 15, VX, -V, 1
+DA, 10, PRESS, 0, 1
+DA, 12, PRESS, 0, 1
+
+
+
+! Список команд задающих свойства среды
+FLDATA7, PROT, DENS, CONSTANT
+FLDATA8, NOMI, DENS, 1000
+FLDATA7, PROT, VISC, CONSTANT
+FLDATA8, NOMI, VISC, 0.000894
+FLDATA7, PROT, COND, CONSTANT
+FLDATA8, NOMI, COND, -1
+FLDATA7, PROT, SPHT, CONSTANT
+FLDATA8, NOMI, SPHT, -1
+FLDATA15, PRES, REFE, P
+
+
+! Список команд для определения параметров решателя и решения задачи
+FLDATA1, SOLU, TRAN, 0
+FLDATA1, SOLU, TEMP, 0
+FLDATA1, SOLU, TURB, 1
+FLDATA1, SOLU, COMP, 0
+FLDATA24, TURB, MODL, 3
+FLDATA37, ALGR, SEGR, SIMPLEN
+FLDATA2, ITER, EXEC, 500
+FLDATA34, MIR, MOME, 0.35
+FINISH
+/SOL
+SOLVE
+FINISH
+
+
+! Список команд построения конечно-элементной модели внутреннего объема шарового крана
+/FILNAME, PipingСrane, 0
+D = 1
+d_ = 0.95
+Fi = 45
+V = 0.2
+P = 3*(1E+5)
+Pi = ACOS(-1)
+/PREP7
+CYLIND, D/2, 0, -D/2, -2*D, 0, 180
+CYLIND, D/2, 0, D/2, 2*D, 0, 180
+CYLIND, d_/2, 0, -D/2/COS(45/180*PI), D/2/COS(45/180*PI), 0, 180
+SPH4, 0, 0, D/2/COS(45/180*PI)
+VDELE, 4,,, 0
+ADELE, 17,,, 1
+VSBA, 3, 16, , DELETE, DELETE
+VDELE, 4, 5, 1 , 1
+CSYS, 5
+VGEN, 2, 6, , , , FI, , , , 1
+CSYS, 0
+BTOL, 0.10E-5
+VADD, 1, 6, 2
+BTOL, DEFA
+AADD, 20, 21, 16, 17, 24, 28, 18, 13, 31, 30
+NUMCMP, ALL
+ET, 1, FLUID142
+SMRTSIZE, 4
+MSHAPE, 1, 3D
+VMESH, 1
+ASEL, S, AREA, , 4, 10
+DA, ALL, VX, 0, 1
+DA, ALL, VY, 0, 1
+DA, ALL, VZ, 0, 1
+ASEL, ALL
+DA, 2, VY, 0, 1
+DA, 3, VZ, -V, 1
+DA, 1, PRESS, 0, 1
+
+
+! Список команд построения конечно-элементной модели внутреннего объема дискового затвора
+/FILNAME, ButterflyValve, 0
+D = 1
+Fi = 45
+H_MAX = 0.1
+H_MIN = 0.03
+L = 2*D
+V = 0.5
+P = 3*(1E+5)
+Pi = ACOS(-1)
+/PREP7
+K, 1, 0, 0, -H_MAX/2
+K, 2, D/2, 0, -H_MIN/2
+K, 3, D/2, 0, H_MIN/2
+K, 4, 0, 0, H_MAX/2
+KSYMM, X, 2, 3, 1
+A, 1, 2, 3, 4, 6, 5
+CYLIND, D/2, 0, -H_MAX/2, H_MAX/2, 0, 180
+VOFFST, 1, -D
+VSBA, 1, 11, , DELETE, KEEP
+VSBA, 4, 10, , DELETE, KEEP
+VSBA, 5, 8, , DELETE, KEEP
+VSBA, 6, 13, , DELETE, KEEP
+VDELE, 1, 5 , 1, 1
+CYLIND, 0.2*D/2, 0, -L, L, 0, 360
+CSYS, 5
+VGEN, 2, 1, , , , 90, , , , 1
+CSYS, 1
+VGEN, 2, 1, , , , 90, , , , 1
+CSYS, 0
+VADD, ALL
+CSYS, 5
+VGEN, 2, 2, , , , FI, , , , 1
+CSYS, 0
+CYLIND, D/2, 0, -L, L, 0, 180
+VSBV, 1, 2, , DELETE, DELETE
+NUMCMP, ALL
+ET, 1, FLUID142
+SMRTSIZE, 8
+ESIZE, D/5
+MSHAPE, 1, 3D
+VMESH, ALL
+ASEL, S, AREA, , 3, 12, 1, 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 15, , , 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 13, 14, , 1
+NSLA, S, 1
+D, ALL, VY, 0
+ASEL, ALL
+NSEL, ALL
+ESEL, ALL
+DA, 2, VZ, -V, 1
+DA, 1, PRESS, 0, 1
+
+
+
+! Список команд построения конечно-элементной модели и задания краевых условий внутреннего объема клиновой задвижки
+/FILNAME, WedgeGateValve, 0
+D = 1
+H = 1.05
+h_ = D
+Fi = 5
+V = 0.5
+L = 0.05
+POSITION = 0.5*H
+P = 3*(1E+5)
+Pi = ACOS(-1)
+/PREP7
+K, 1, 0, -H/2, -L/2
+K, 2, 0, -H/2, L/2
+K, 3, 0, H/2, L/2+H*TAN(FI/180*PI)
+K, 4, 0, H/2 + h_, L/2 + H*TAN(FI/180*PI)
+K, 5, 0, H/2 + h_, -L/2 - H*TAN(FI/180*PI)
+K, 6, 0, H/2 , -L/2 - H*TAN(FI/180*PI)
+*DO, i, 1, 5
+ LSTR, i, i+1
+*ENDDO 
+LSTR, 6, 1
+AL, 1, 2, 3, 4, 5, 6
+VOFFST, 1, H/2
+CYLIND, H/2, 0, -H, H, 180, 270
+VSBA, 1, 11, , DELETE, DELETE
+VDELE, 2, 3, 1, 1
+NUMCMP, ALL
+VGEN, 2, 1, , , , POSITION
+CYLIND, D/2, 0, -2*D, 2*D, 90, 270
+VADD, 1, 3
+VSBV, 4, 2, , DELETE, DELETE
+AADD, 20, 19, 36, 7, 21
+ET, 1, FLUID142
+SMRTSIZE, 8
+ESIZE, D/5
+MSHAPE, 1, 3D
+VMESH, 1
+ASEL, S, AREA, , 32, 35, 1
+ASEL, A, AREA, , 37
+ASEL, A, AREA, , 5, 6, 1
+ASEL, A, AREA, , 1, 10, 9
+ASEL, A, AREA, , 25, 26, 1
+DA, ALL, VX, 0, 1
+DA, ALL, VY, 0, 1
+DA, ALL, VZ, 0, 1
+ASEL, ALL
+ASEL, S, AREA, , 23, 24, 1
+ASEL, A, AREA, , 27, 28, 1
+ASEL, A, AREA, , 2
+DA, ALL, VX, 0, 1
+DA, ALL, VX, 0, 1
+DA, ALL, VX, 0, 1
+ASEL, ALL
+DA, 18, VZ, -V, 1
+DA, 17, PRESS, 0, 1
+
+
+
+
+
+! Команды построения конечно-элементной модели объема углового клапана
+/FILNAME, Valve, 0
+D = 0.5
+D1 = 0.6
+D2 = 0.55
+D3 = 0.1
+H = 0.1
+H1 = D+2*H
+L = 2*D
+POSITION = 2*H
+V = 0.5
+P = 3*(1E+5)
+Pi = ACOS(-1)
+/PREP7
+CYLIND, D/2, 0, L, 0, 0, 180
+CYLIND, D1/2, 0, 0, -H1, 0, 180
+CYLIND, D/2, 0, L, 0, 0, 180
+CSYS, 5
+VGEN, 2, 3, , , , 270, , , , 1
+CSYS, 0
+VGEN, 2, 3, , , , , -(H+D/2), , , 1
+CYLIND, D2/2, 0, 0, -H, 0, 180
+CYLIND, D3/2, 0, -H/2, -L, 0, 180
+VADD, 1, 2, 3, NV4, NV5, NV6, NV7, NV8, NV9
+VADD, 4, 5
+VGEN, 2, 1, , , , , -POSITION, , , 1
+VSBV, 6, 1, , DELETE, DELETE
+ET, 1, FLUID142
+SMRTSIZE, 8
+ESIZE, D/5
+MSHAPE, 1, 3D
+VMESH, ALL
+ASEL, S, AREA, , 1, 3, 2, 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 17, 18, 1, 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 15, 20, 5, 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 28, 34, 6, 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 26, , , 1
+NSLA, S, 1
+D, ALL, VX, 0
+D, ALL, VY, 0
+D, ALL, VZ, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 4, 5, 1, 1
+NSLA, S, 1
+D, ALL, VY, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 22, 23, 1, 1
+NSLA, S, 1
+D, ALL, VY, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 29, 30, 1, 1
+NSLA, S, 1
+D, ALL, VY, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 16, 19, 3, 1
+NSLA, S, 1
+D, ALL, VY, 0
+ASEL, ALL
+NSEL, ALL
+ASEL, S, AREA, , 33, , , 1
+NSLA, S, 1
+D, ALL, VY, 0
+ASEL, ALL
+NSEL, ALL
+NSEL, ALL
+ESEL, ALL
+DA, 2, VZ, -V, 1
+DA, 12, PRESS, 0, 1
+
+
+
+! Список команд, задающих свойства среды
+FLDATA7, PROT, DENS, CONSTANT
+FLDATA8, NOMI, DENS, 1000
+FLDATA7, PROT, VISC, CONSTANT
+FLDATA8, NOMI, VISC, 0.000894
+FLDATA7, PROT, COND, CONSTANT
+FLDATA8, NOMI, COND, -1
+FLDATA7, PROT, SPHT, CONSTANT
+FLDATA8, NOMI, SPHT, -1
+FLDATA15, PRES, REFE, P
+
+
+! Список команд для определения параметров решателя и решения задачи
+FLDATA1, SOLU, TRAN, 0
+FLDATA1, SOLU, TEMP, 0
+FLDATA1, SOLU, TURB, 1
+FLDATA1, SOLU, COMP, 0
+FLDATA24, TURB, MODL, 3
+FLDATA37, ALGR, SEGR, SIMPLEN
+FLDATA2, ITER, EXEC, 500
+FLDATA34, MIR, MOME, 0.35
+FINISH
+/SOL
+SOLVE
+FINISH
+
+
+
+! Определение имени файла решаемой задачи, а также имен и значений физических констант для решения краевой задачи для любого из рассматриваемых сужающих устройств
+/FILNAME, Vortex, 0
+P0 = 1E5
+P = 1.2 E6
+DELTA_P = P - P0
+BETA = 0.00078
+RO_0 = 700
+RO = RO_0*(1+BETA*(P-P0))
+VISCOSITY = 0.001
+V = 0.4
+D = 1
+
+
+
+! Список команд для подготовки к решению краевой задачи вихревого обтекания диафрагмы
+E = 0.01
+e_=0.005
+d_ = 0.8
+Fi = 45
+Pi = ACOS(-1)
+d_VYX = d_+(E-e_) / TAN(Fi*Pi/180)
+/PREP7
+K, 1, D/2, 0
+K, 2, D/2, D
+K, 3, d_ /2, D
+K, 4, d_ /2, D + e_
+K, 5, d_VYX/2, D + E 
+K, 6, D/2, D + E
+K, 7, D/2, 5*D + E
+K, 8, 0, 5*D + E
+K, 9, 0, D + E
+K, 10, 0, D
+K, 11, 0, 0
+*DO, i, 1, 10
+ LSTR, i, i+1
+*ENDDO
+LSTR, 11, 1
+LSTR, 10, 3
+LSTR, 5, 9
+AL, 3, 4, 9, 12, 13
+AL, 1, 2, 10, 11, 12
+AL, 5, 6, 7, 8, 13
+LESIZE, 1, , , 50, 1/30
+LESIZE, 2, , , 20
+LESIZE, 3, , , 2
+LESIZE, 4, , , 2
+LESIZE, 5, , , 18
+LESIZE, 6, , , 50, 30
+LESIZE, 8, , , 50, 1/30
+LESIZE, 12, , , 20
+ET, 1, FLUID141
+KEYOPT, 1, 3, 1
+MSHMID, 0
+MSHKEY, 1
+AMAP, 1, 3, 5, 9, 10
+AMAP, 2, 1, 2, 10, 11
+AMAP, 3, 6, 7, 8, 9
+DL, 7, , PRESS, DELTA_P, 1
+DL, 11, , VY, V, 1
+LSEL, S, LINE, , 1, 10
+LSEL, U, LINE, , 7
+DL, ALL, , VX, 0, 1
+LSEL, U, LINE, , 8, 10
+DL, ALL, , VY, 0, 1
+LSEL, ALL
+POINT_POSITION = 1.25 D
+
+
+
+! Список команд для подготовки к решению краевой задачи вихревого обтекания эллипсного сопла с большим относительным диаметром горловины
+H = 0.01
+F =0.005
+d_ = 0.8
+Pi = ACOS(-1)
+/PREP7
+K, 1, d_/2, 1.5*D
+K, 2, d_/2, 1.5*D+0.6*d_
+K, 3, d_/2 + F, 1.5*D+0.6*d_
+K, 4, D/2-((D-d_)/2-F)*SIN(Pi/10), D + 6*H
+K, 5, D/2, D + H
+K, 6, D/2, 1.5*D+0.6*d_
+K, 7, D/2, 6.5*D
+K, 8, 0, 6.5*D
+K, 9, 0, 1.5*D+0.6*d_
+K, 10, 0, D
+K, 11, 0, 0
+K, 12, D/2, 0
+K, 13, D/2, D
+K, 14, D/2-((D-d_)/2)*SIN(Pi/12), 1.5*D-COS(Pi/12)/2*D
+K, 15, D/2-((D-d_)/2)*SIN(Pi/6), 1.5*D-COS(Pi/6)/2*D
+K, 16, D/2-((D-d_)/2)*SIN(Pi/4), 1.5*D-COS(Pi/4)/2*D
+K, 17, D/2-((D-d_)/2)*SIN(Pi/3), 1.5*D-COS(Pi/3)/2*D
+*DO, i, 1, 12
+LSTR, i, i+1
+*ENDDO
+BSPLIN, 13, 14, 15, 16, 17, 1, 1, 0, 0, 0, 1, 0
+LSTR, 9, 2
+LSTR, 10, 13
+LSTR, 3, 6
+AL, 10, 11, 12, 15
+AL, 15, 13, 1, 14, 9
+AL, 14, 2, 16, 6, 7, 8
+AL, 3, 4, 5, 16
+LESIZE, 12, , , 50, 1/30
+LESIZE, 13, , , 20
+LESIZE, 1, , , 20
+LESIZE, 2, , , 2
+LESIZE, 3, , , 20
+LESIZE, 4, , , 10
+LESIZE, 6, , , 50, 30
+LESIZE, 8, , , 50, 1/30
+LESIZE, 15, , , 30
+ET, 1, FLUID141
+KEYOPT, 1, 3, 1
+MSHMID, 0
+MSHKEY, 1
+AMAP, 1, 10, 11, 12, 13
+AMAP, 2, 13, 2, 9, 10
+AMAP, 3, 6, 7, 8, 9
+AMAP, 4, 3, 4, 5, 6
+DL, 7, , PRESS, DELTA_P, 1
+DL, 11, , VY, V, 1
+LSEL, S, LINE, , 1, 13
+LSEL, U, LINE, , 7
+LSEL, U, LINE, , 11
+DL, ALL, , VX, 0, 1
+LSEL, U, LINE, , 7, 10
+DL, ALL, , VY, 0, 1
+ALLSEL, ALL
+POINT_POSITION =1.5*D+d_
+
+
+
+
+! Список команд для подготовки к решению краевой задачи для сопла ИСА 1932
+H = 0.05
+h_=0.015
+d_ = 0.6
+F = 0.01
+R1 = 0.2*d_
+R2 = 5*d_/6-d_/2
+/PREP7
+K, 1, D/2, 0
+K, 2, D/2, D
+LSTR, 1, 2
+CYL4, 0.75*d_, D + 0.2*d_,, 180, R1, 270
+CYL4, 5*d_/6, D + 0.3041*d_,, 180, R2, 270
+ASBA, 2, 1, , DELETE, DELETE
+ADELE,ALL
+LDELE, 3, 8,1,1
+LDELE, 10,,,1
+LDELE, 13,,,1
+LSTR, 2, 4
+NUMCMP, ALL
+K, 7, d_/2, D + 0.3041*d_+0.3*d_
+K, 8, 0.53*d_, D + 0.3041*d_+0.3*d_
+K, 9, 0.53*d_, D + 0.3041*d_+0.3*d_+F
+K, 10, 0.53*d_+h_, D + 0.3041*d_+0.3*d_+F
+K, 11, 0.75*d_, D + H
+K, 12, D / 2, D + H
+K, 13, D / 2, D + 0.3041*d_+0.3*d_+F
+K, 14, D / 2, 5*D + H
+K, 15, 0, 5*D + H
+K, 16, 0, D + 0.3041*d_+0.3*d_+F
+K, 17, 0, D + 0.3041*d_+0.3*d_
+K, 18, 0, D
+K, 19, 0, 0
+LSTR, 4, 7
+*DO, i, 7, 18
+LSTR, i, i+1
+*ENDDO
+LSTR, 19, 1
+LSTR, 10, 13
+LSTR, 16, 9
+LSTR, 17, 7
+LSTR, 18, 3
+AL, 1, 2, 23, 18, 19
+AL, 4, 3, 5, 6, 22, 17, 23
+AL, 7, 8, 21, 16, 22
+AL, 10, 11, 12, 20
+AL, 21, 9, 20, 13, 14, 15
+LESIZE, 1, , , 30, 1/30
+LESIZE, 18, , , 30, 30
+LESIZE, 3, , , 1
+LESIZE, 4, , , 10
+LESIZE, 5, , , 20
+LESIZE, 6, , , 20
+LESIZE, 7, , , 3
+LESIZE, 23, , , 20
+LESIZE, 20, , , 15
+LESIZE, 12, , , 20
+LESIZE, 13, , , 40, 30
+LESIZE, 15, , , 40, 1/30
+ET, 1, FLUID141
+KEYOPT, 1, 3, 1
+MSHMID, 0
+MSHKEY, 1
+AMAP, 1, 1, 2, 18, 19
+AMAP, 2, 3, 7, 17, 18
+AMAP, 3, 8, 9, 16, 17
+AMAP, 4, 10, 11, 12, 13
+AMAP, 5, 13, 14, 15, 16
+DL, 19, , VY, V, 1
+DL, 14, , PRESS, DELTA_P, 1
+LSEL, S, LINE, , 1, 19
+LSEL, U, LINE, , 2
+LSEL, U, LINE, , 7
+LSEL, U, LINE, , 9
+LSEL, U, LINE, , 11
+LSEL, U, LINE, , 14
+LSEL, U, LINE, , 19
+DL, ALL, , VX, 0, 1
+LSEL, S, LINE, , 1, 13
+DL, ALL, , VY, 0, 1
+ALLSEL, ALL
+POINT_POSITION = D + 0.3041*d_+d_+F
+
+
+
+! Список команд для подготовки к решению краевой задачи вихревого обтекания сопла Вентури
+d_ = 0.6
+F = 0.5*d_
+L = 0.35*D
+Fi = 30
+Pi = ACOS(-1)
+R1 = 0.2*d_
+R2 = 5*d_/6-d_/2
+/PREP7
+K, 1, D/2, 0
+K, 2, D/2, D
+LSTR, 1, 2
+CYL4, 0.75*d_, D + 0.2*d_,, 180, R1, 270
+CYL4, 5*d_/6, D + 0.3041*d_,, 180, R2, 270
+ASBA, 2, 1, , DELETE, DELETE
+ADELE,ALL
+LDELE, 3, 8,1,1
+LDELE, 10,,,1
+LDELE, 13,,,1
+LSTR, 2, 4
+NUMCMP, ALL
+LEXTND, 5, 4, 0.3*d_+F, 0
+K, 7, d_/2+L*TAN(Fi/360*PI), D+0.3041*d_+0.3*d_+F+ L
+K, 8, D/2, D+0.3041*d_+0.3*d_+F+ L
+K, 9, D/2, D+0.3041*d_+0.3*d_+F+ L + 5*D
+K, 10, 0, D+0.3041*d_+0.3*d_+F+ L + 5*D
+K, 11, 0, D+0.3041*d_+0.3*d_+F+ L
+K, 12, 0, D+0.3041*d_+0.3*d_+F
+K, 13, 0, D
+K, 14, 0, 0
+*DO, i, 7, 13
+LSTR, i, i+1
+*ENDDO
+LSTR, 4, 7
+LSTR, 14, 1
+LSTR, 13, 3
+LSTR, 12, 4
+LSTR, 11, 7
+AL, 1, 2, 15, 12, 14
+AL, 4, 3, 5, 16, 11, 15
+AL, 16, 13, 17, 10
+AL, 17, 6, 7, 8, 9
+LESIZE, 1, , , 30, 1/30
+LESIZE, 12, , , 30, 30
+LESIZE, 2, , , 5
+LESIZE, 3, , , 5
+LESIZE, 4, , , 5
+LESIZE, 5, , , 30
+LESIZE, 13, , , 20
+LESIZE, 6, , , 10
+LESIZE, 7, , , 40, 30
+LESIZE, 9, , , 40, 1/30
+LESIZE, 15, , , 30
+ET, 1, FLUID141
+KEYOPT, 1, 3, 1
+MSHMID, 0
+MSHKEY, 1
+AMAP, 1, 1, 2, 13, 14
+AMAP, 2, 3, 4, 12, 13
+AMAP, 3, 4, 7, 11, 12
+AMAP, 4, 8, 9, 10, 11
+DL, 14, , VY, V, 1
+DL, 8, , PRESS, DELTA_P, 1
+LSEL, S, LINE, , 1, 13, 1, 1
+LSEL, U, LINE, , 8
+DL, ALL, , VX, 0, 1
+LSEL, U, LINE, , 9, 12
+DL, ALL, , VY, 0, 1
+ALLSEL, ALL
+POINT_POSITION = D+0.3041*d_+0.3*d_+F+1.5*L
+
+
+
+! Список команд задающих свойства среды
+FLDATA7, PROT, DENS, CONSTANT
+FLDATA8, NOMI, DENS, RO
+FLDATA7, PROT, VISC, CONSTANT
+FLDATA8, NOMI, VISC, VISCOSITY
+FLDATA7, PROT, COND, CONSTANT
+FLDATA8, NOMI, COND, -1
+FLDATA7, PROT, SPHT, CONSTANT
+FLDATA8, NOMI, SPHT, -1
+FLDATA15, PRES, REFE, P
+FLDATA1, SOLU, TRAN, 0
+FLDATA1, SOLU, TEMP, 0
+FLDATA1, SOLU, TURB, 1
+FLDATA1, SOLU, COMP, 0
+FLDATA24, TURB, MODL, 3
+FLDATA37, ALGR, SEGR, SIMPLEN
+FLDATA2, ITER, EXEC, 500
+FLDATA34, MIR, MOME, 0.35
+FINISH
+/SOL
+SOLVE
+FINISH
+
+
+
+! Список команд для работы с постпроцессором и просмотра распределения давлений
+/POST1
+SET, LAST
+/EXPAND, 1, AXIS, HALF, ,180
+PLNSOL, PRES
+
+
+
+! Список команд для назначения точек, через которые будут проходить линии тока и просмотр линий
+*DO, i, 1, 3
+TRPOIN, d_/2+i*(D-d_)/7 , 0.8*D, , , VY
+*ENDDO
+*DO, i, 1, 4
+TRPOIN, i*d_/9 , POINT_POSITION, , , VY
+*ENDDO
+*DO, i, 1, 5
+TRPOIN, d_/2 + i*(D-d_)/11 , POINT_POSITION, , , VY
+*ENDDO
+PLTRAC, FLUID, VY
+
+
+
+
+
+
+
+
+
+
+
+
